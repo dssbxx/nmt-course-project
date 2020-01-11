@@ -1,10 +1,13 @@
 import torch as t
 import torch.nn as nn
 from torch.autograd import Variable
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib import pyplot as plt
 
 NUM = 8
 LEARNING_RATE = 0.02
-EPOCHS = 6000
+EPOCHS = 7000
 
 class XorNet(nn.Module):
 	def __init__(self, input_size, hidden_size_1, hideden_size_2, output_size):
@@ -39,14 +42,16 @@ def train():
 	#train_Y = t.zeros(train_Y.shape[0], NUM).scatter_(1, train_Y, 1).long()
 	train_X = Variable(train_X)
 	train_Y = Variable(train_Y)
-	model = XorNet(2,6,6,NUM)
+	model = XorNet(2,6,3,NUM)
 	optimizer = t.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 	criterion = nn.CrossEntropyLoss()
 	
+	loss_history = []
 	for epoch in range(EPOCHS):
 		optimizer.zero_grad()
 		output_Y = model(train_X)
 		loss = criterion(output_Y, train_Y)
+		loss_history.append(loss.item())
 		loss.backward()
 		optimizer.step()
 		print("epoch {}| loss: {}".format(epoch, loss))
@@ -73,6 +78,11 @@ def train():
 	print("test accuracy: %d" % accuracy.item())
 
 	t.save(model.state_dict(), "model.pth")
+	plt.title("Loss History")
+	plt.xlabel("loss")
+	plt.ylabel("epoch")
+	plt.plot(loss_history)
+	plt.savefig('loss.jpg')
 
 if __name__ == '__main__':
 	train()
